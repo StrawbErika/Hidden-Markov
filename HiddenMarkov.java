@@ -1,147 +1,118 @@
-
 import java.io.*;
 import java.util.*;
 
 public class HiddenMarkov {
     public ArrayList<String> values, measurement, compCases;
-    public Double pES, pFS, pET, pFT;
+    public HashMap<String, Double> probabilities;
     public int cases;
     public String sequence;
+                    
+
+//di ko pa rin gets measurement (is the E & F)
+//values is S T
 
     public HiddenMarkov() {
+        this.probabilities = new HashMap<String, Double>();
         this.values = new ArrayList<String>();
         this.measurement = new ArrayList<String>();
-        this.pES = 0.0;
-        this.pFS = 0.0;
-        this.pET = 0.0;
-        this.pFT = 0.0;
+        this.compCases = new ArrayList<String>();
         this.cases = 0;
-        // classifyDictionary = new HashMap<String, ArrayList>();
-        // String s="";
-        // BagOfWords spam = new BagOfWords();
-        // numberOfSpamMsgs = new File("all_data/spam/").listFiles().length;
-        // for(int i = 1; i<numberOfSpamMsgs; i++){
-        //     s = String.format("%03d", i);
-        //     s = String.format("all_data/spam/" + s);
-        //     spam.loadFile(s);
-        // }
-        // System.out.println("spam words " + spam.dictionarySize);
-        // spam.saveFile(spam.dictionarySize, spam.numberOfWords, "outputSpam.txt");
-        //
-        // BagOfWords ham = new BagOfWords();
-        // numberOfHamMsgs = new File("all_data/ham/").listFiles().length;
-        // for(int i = 1; i<300; i++){
-        //     s = String.format("%03d", i);
-        //     s = String.format("all_data/ham/" + s);
-        //     ham.loadFile(s);
-        // }
-        // System.out.println("ham words " + ham.dictionarySize);
-        // ham.saveFile(ham.dictionarySize, ham.numberOfWords, "outputHam.txt");
-        //
-        // s = String.format("all_data/classify/001");
-        // //loads all files in classify (atm 1 muna) and saves it in the dictionary
-        // classifyLoadFile(s, classifyDictionary);
-        //
-        // Probability p = new Probability();
-        // double pMessageSpam = 1;
-        // double pMessageHam = 1;
-        // double pSpam = p.pSpam(numberOfSpamMsgs, numberOfHamMsgs);
-        // double pHam = p.pHam(pSpam);
-        // System.out.println("pSPAM: " + pSpam);
-        // System.out.println("pHAM: " + pHam);
-        //
-        // //gets pMessageSpam & pMessageHam by looping through the dictionary and saves each probability in a file
-        // for (Map.Entry<String, ArrayList> entry : classifyDictionary.entrySet()) {
-        //   double sVal;
-        //   double hVal;
-        //   double pWordSpam = 0;
-        //   double pWordHam = 0;
-        //
-        //   //loops through the array of words of each file (which is saved as the value of each key <file>)
-        //   for(int i = 0; i < entry.getValue().size(); i++){
-        //     //gets MessageSpam & messageHam by getting the WordSpam (u get it by getting the #of occurences it is in Spam/Ham)
-        //     if(spam.dictionary.containsKey(entry.getValue().get(i))){
-        //         sVal = spam.dictionary.get(entry.getValue().get(i));
-        //     }else{
-        //       sVal = 0;
-        //       System.out.println("SPAM NOT: " + entry.getValue().get(i) + "================================================");
-        //     }
-        //     pWordSpam = p.pWordSpam(spam.numberOfWords, sVal);
-        //     if(pWordSpam == 0){
-        //     }
-        //
-        //     System.out.println("pWordSpam : "+ pWordSpam+ " * pMessageSpam" +pMessageSpam+ " at word " + i + " is ");
-        //     pMessageSpam = pWordSpam * pMessageSpam;
-        //     System.out.println(pMessageSpam);
-        //
-        //     if(ham.dictionary.containsKey(entry.getValue().get(i))){
-        //         hVal = ham.dictionary.get(entry.getValue().get(i));
-        //     }else{
-        //       hVal = 0;
-        //       // System.out.println("HAM NOT: " + entry.getValue().get(i) + "================================================");
-        //     }
-        //     pWordHam = p.pWordHam(spam.numberOfWords, hVal);
-        //     if(pWordSpam == 0){
-        //     }
-        //
-        //     System.out.println("pWordHam : "+ pWordHam+ " * pMessageHam" +pMessageHam+ " at word " + i + " is ");
-        //     pMessageHam = pWordHam * pMessageHam;
-        //     System.out.println(pMessageHam);
-        //     // System.out.println("pMESSAGEHAM is " + pMessageHam);
-        //     System.out.println("");
-        //
-        //   }
-        //
-        //   // System.out.println("pMessageHam: " +pMessageHam);
-        //   double pMessage = p.pMessage(pMessageSpam, pSpam, pMessageHam, pHam);
-        //   System.out.println("pMessage: " +pMessage);
-        //   double pSpamMessage = p.pSpamMessage(pMessageSpam, pMessage, pSpam);
-        //   double pHamMessage = p.pHamMessage(pMessageHam, pMessage);
-        //   System.out.println("pSpamMessage: " +pSpamMessage);
-        //   System.out.println("pHamMessage: " +pHamMessage);
-        //
-        //   saveFile("outputClassify", classifyDictionary);
-        //   classifyFile(entry.getKey(), "Ham", pSpamMessage);
-        // }
-        //
-        //
-        //
     }
     public void run(){
         loadFile();
-        // saveFile();
+        getTransitionProbabilities();
+        saveFile();
     }
+
+    public void getTransitionProbabilities(){
+        char[] sq=sequence.toCharArray();
+        getS0(sq);
+        getTransitionProbability(sq,'S','S');
+        getTransitionProbability(sq,'T','S');
+        getTransitionProbability(sq,'T','T');
+        getTransitionProbability(sq,'S','T');
+    }
+
+    public void getS0(char[] sq){
+        if(sq[0] == values.get(0).charAt(0)){
+            probabilities.put("S0", 1.0);            
+        }
+        else{
+            probabilities.put("S0", 0.0);            
+        }
+    }
+    
+    //x given y : followed by x (x ung after y)
+    public void getTransitionProbability(char[] sq, char x, char y){
+        Double yCount = getValueCount(sq, y);
+        Double probability = 0.0;
+        Double count = 0.0;
+        for(int i = 0; i < sq.length; i++){
+            if(i+1 < sq.length){
+                if((sq[i] == x) && (sq[i+1] == y)){
+                    count += 1.0;
+                }
+            }
+        }
+        probability = count / yCount;  
+        System.out.println(Character.toString(x) + Character.toString(y) + ": " + count + "/ " + yCount +" = " + probability);
+        String s = Character.toString(x);
+        s = s.concat(Character.toString(y)); 
+        probabilities.put(s, probability);
+    }
+
+    public Double getValueCount(char[] sq, char x){
+        Double count = 0.0;
+        for(int i = 0; i < sq.length; i++){
+            if(sq[i] == x){
+                count += 1.0;
+            }
+        }
+        return count;
+    }
+
 
     public void loadFile() {
         try{
             FileInputStream fstream = new FileInputStream("hmm.in");
             DataInputStream in = new DataInputStream(fstream);
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
-            String line;
+            String line, first, second;
 
             int j = 0;
             while((line  = br.readLine()) != null)
             {
-                System.out.println(line);
 
                 String[] val = line.split(" "); //stores all the words from the line in values
                 if(j==0){
-                    for (String str : values) {
+                    for (String str : val) {
                         values.add(str);
+                        // S T 
                     }
                 }
                 else if(j==1){
-                    for (String str : values) {
+                    for (String str : val) {
                         measurement.add(str);
+                        // E F 
                     }
                 }
                 else if(j==2){
-                    pES = Double.parseDouble(val[0]);
-                    pFS = Double.parseDouble(val[1]);
+                    first = measurement.get(0);
+                    first = first.concat(values.get(0));
+                    probabilities.put(first, Double.parseDouble(val[0]));
+
+                    second = measurement.get(1);
+                    second = second.concat(values.get(0));
+                    probabilities.put(second, Double.parseDouble(val[1]));
                 }
                 else if(j==3){
-                    pET = Double.parseDouble(val[0]);
-                    pFT = Double.parseDouble(val[1]);
+                    first = measurement.get(0);
+                    first = first.concat(values.get(1));
+                    probabilities.put(first, Double.parseDouble(val[0]));
+
+                    second = measurement.get(1);
+                    second = second.concat(values.get(1));
+                    probabilities.put(second, Double.parseDouble(val[1]));
                 }
                 else if(j==4){
                     sequence = line;
@@ -168,18 +139,20 @@ public class HiddenMarkov {
             for(int i = 0; i < values.size(); i++){
                 writer.write(values.get(i) + " ");
             }
-            writer.write("\n ");
+            writer.write("\n");
 
             for(int i = 0; i < measurement.size(); i++){
                 writer.write(measurement.get(i) + " ");
             }
+            writer.write("\n");
 
-            writer.write("\n ");
-            writer.write(pES + " " + pFS);
-            writer.write("\n ");
-            writer.write(pET + " " + pFT);
-            writer.write("\n ");
-            writer.write(cases);
+            for (Map.Entry<String, Double> entry : probabilities.entrySet()) {
+                writer.write(entry.getKey()+" : "+entry.getValue() + "\n");
+            }
+
+            writer.write(sequence + "\n");
+            // System.out.println(cases);
+            // writer.write(cases);
 
             for(int i = 0; i < compCases.size(); i++){
                 writer.write(compCases.get(i) + "\n");
@@ -195,3 +168,4 @@ public class HiddenMarkov {
         }
     }
 }
+
