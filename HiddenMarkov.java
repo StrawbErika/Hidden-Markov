@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-public class HiddenMarkov {
+public claGS2 HiddenMarkov {
     public ArrayList<String> values, measurement, compCases;
     public HashMap<String, Double> probabilities;
     public ArrayList<Double> firstVal, secondVal;
@@ -54,11 +54,13 @@ public class HiddenMarkov {
     }
 
     public void getStates(){
-        // for(int index = 0; index < compCases.size(); index++){
-        //     getValueSubX(compCases.get(index));
-        // }
-        getValueSubX("S1 given E1");
-        getValueSubX("T1 given E1");
+        for(int index = 0; index < compCases.size(); index++){
+            // getValueSubX(compCases.get(index));
+            // System.out.println(compCases.get(index));            
+        }
+        // getValueSubX("S1 given E1");
+        // getValueSubX("S2 given E1");
+        // getValueSubX("T3 given E1");
     }
 
 
@@ -78,15 +80,11 @@ public class HiddenMarkov {
             }
             else if(state.equals(values.get(1))){ //T
                 System.out.println(comp + " " + state + " " + getOtherState(state) + " " + x);
-                equationSecondVal(comp, state, getOtherState(state), x);
+                equationFirstVal(comp, state, getOtherState(state), x);
             }
-            else if(state.equals(measurement.get(0))){ //E
+            else{ //E
 
             }
-            else if(state.equals(measurement.get(1))){ //F
-
-            }
-            // x.toString(x);
     }
 
     public String getOtherState(String s){ //good
@@ -98,71 +96,40 @@ public class HiddenMarkov {
         }
         return ans;
     }
-// P(S2) = P(SS)P(S1) + P(ST)P(T1)
-//siz good
+
+
     public void equationFirstVal(String compStatement, String state,  String opState, int x){ //S1 , S, T,  1
-    // P(S1) = P(SS)P(S0) + P(ST)P(T0)
-        String Sminus = state.concat(Integer.toString(x-1)); //S0 
-        String Tminus = opState.concat(Integer.toString(x-1));  //T0
-        String SS = state.concat(state);  //SS
-        String ST = state.concat(opState);  //ST
+        String givenState = state.concat(Integer.toString(x-1));  
+        String opposingState = opState.concat(Integer.toString(x-1));  
+        String GS2 = state.concat(state);   
+        String GSOP = state.concat(opState);  
 
-        if(probabilities.containsKey(Sminus) && probabilities.containsKey(Tminus)){ //if T0 & S0 exists fetch their probability
-            Double dS = probabilities.get(Sminus); 
-            Double dT = probabilities.get(Tminus);
-            Double dSS = probabilities.get(SS);
-            Double dST = probabilities.get(ST);
-            Double ans = dSS * dS + dST * dT;
-            System.out.println(Sminus + ": " + dS + " " + Tminus + ": " + dT + " " + SS + ": " + dSS + " " + ST + ": " + dST);
-            System.out.println(dSS + "*" + dS + "+" + dT + "*" + dST + "=" + ans);
+        if(probabilities.containsKey(givenState) && probabilities.containsKey(opposingState)){ //if T0 & S0 exists fetch their probability
+            Double dGivenState = probabilities.get(givenState); 
+            Double dOpState = probabilities.get(opposingState);
+
+            Double dGS2 = probabilities.get(GS2);
+            Double dGSOP = probabilities.get(GSOP);
+
+            Double ans = dGS2 * dGivenState + dGSOP * dOpState;
+            // System.out.println(givenState + ": " + dGivenState + " " + opposingState + ": " + dOpState + " " + GS2 + ": " + dGS2 + " " + GSOP + ": " + dGSOP;
+
             probabilities.put(compStatement, ans);
         }
         else{
-            if(probabilities.containsKey(Sminus) && !(probabilities.containsKey(Tminus))){
-                equationSecondVal(Tminus, state, opState, x-1);
+            if(probabilities.containsKey(givenState) && !(probabilities.containsKey(opposingState))){
+                equationFirstVal(opposingState, state, opState, x-1);
             }
-            else if(!(probabilities.containsKey(Sminus)) && probabilities.containsKey(Tminus)){
-                equationFirstVal(Sminus, state, opState, x-1);
+            else if(!(probabilities.containsKey(givenState)) && probabilities.containsKey(opposingState)){
+                equationFirstVal(givenState, state, opState, x-1);
             } 
             else{
-                equationFirstVal(Sminus, state, opState, x-1);
-                equationSecondVal(Tminus, state, opState, x-1);
+                equationFirstVal(givenState, state, opState, x-1);
+                equationFirstVal(opposingState, state, opState, x-1);
             }
         }
     }
-
-// P(T1) = P(TS)P(S0) + P(TT)P(T0)
-// P(T2) = P(TS)P(S1) + P(TT)P(T1)
-    public void equationSecondVal(String compStatement, String state,  String opState, int x){
-        String Tminus = state.concat(Integer.toString(x-1)); //T0 
-        String Sminus = opState.concat(Integer.toString(x-1));  //S0
-        String TT = state.concat(state);  //TT
-        String TS = state.concat(opState);  //TS
-
-        if(probabilities.containsKey(Sminus) && probabilities.containsKey(Tminus)){ //if T0 & S0 exists fetch their probability
-            Double dT = probabilities.get(Tminus);
-            Double dS = probabilities.get(Sminus); 
-            Double dTS = probabilities.get(TS);
-            Double dTT = probabilities.get(TT);
-            Double ans = dTS * dS + dTT * dT;
-            System.out.println(Sminus + ": " + dS + " " + Tminus + ": " + dT + " " + TS + ": " + dTS + " " + TT + ": " + dTS);
-            System.out.println(dTS + "*" + dS + "+" + dT + "*" + dTT + "=" + ans);
-            probabilities.put(compStatement, ans);
-        }
-        else{
-            if(probabilities.containsKey(Sminus) && !(probabilities.containsKey(Tminus))){
-                equationSecondVal(Tminus, state, opState, x-1);
-            }
-            else if(!(probabilities.containsKey(Sminus)) && probabilities.containsKey(Tminus)){
-                equationFirstVal(Sminus, state, opState, x-1);
-            } 
-            else{
-                equationFirstVal(Sminus, state, opState, x-1);
-                equationSecondVal(Tminus, state, opState, x-1);
-            }
-        }
-    }
-
+ 
     public void equationMeasure(){
         
     }
@@ -255,7 +222,7 @@ public class HiddenMarkov {
             }
             in.close();
         } catch (Exception e) {//Catch exception if any
-            System.err.println("Error: " + e.getMessage());
+            System.err.println("Error: " + e.getMeGS2age());
         }
     }
 
