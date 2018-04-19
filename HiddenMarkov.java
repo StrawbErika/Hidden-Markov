@@ -58,31 +58,34 @@ public class HiddenMarkov {
             // getValueSubX(compCases.get(index));
             // System.out.println(compCases.get(index));            
         }
-        // getValueSubX("S1 given E1");
-        // getValueSubX("S2 given E1");
-        // getValueSubX("T3 given E1");
+        getValueSubX("S1 given E1");
+        getValueSubX("S2 given F2");
+        getValueSubX("T3 given E3");
     }
 
 
 
     public void getValueSubX(String value){
-            String[] val = value.split("given"); //stores all the words from the line in values
+            String[] val = value.split(" given "); //stores all the words from the line in values
+
             String comp = val[0]; //S1
-            String measure = val[1]; //E1
             String[] c = comp.split("");
+            String state = c[0]; //S
+            int x = Integer.parseInt(c[1]); //1
+
+            String measure = val[1]; //E1
             String[] m = measure.split("");
-            String state = c[0];
-            int x = Integer.parseInt(c[1]);
+            String stateMeasure = m[0]; //E
+            int y = Integer.parseInt(m[1]); //1
+
 
             if(state.equals(values.get(0))){ //S
                 equationFirstVal(comp, state, getOtherState(state), x);
             }
-            else if(state.equals(values.get(1))){ //T
+            else{ //T
                 equationFirstVal(comp, state, getOtherState(state), x);
             }
-            else{ //E
-
-            }
+            equationMeasure(measure, stateMeasure, y);
     }
 
     public String getOtherState(String s){ //good
@@ -128,14 +131,13 @@ public class HiddenMarkov {
         }
     }
  
-//  p(E1) = pES*pS1 + pET*pT1
-//  p(F1) = pFS*pS1 + pFT*pT1
     public void equationMeasure(String compStatement, String state, int x){ //E1 , E , 1
         String givenFirst = state.concat(values.get(0)); //ES  
         String givenSecond = state.concat(values.get(1));  //ET
         String firstValX = (values.get(0)).concat(Integer.toString(x)); //S1
         String secondValX = (values.get(1)).concat(Integer.toString(x)); //T1
 
+        System.out.println(givenFirst + " " + givenSecond + " " + firstValX + " " + secondValX);
 
         if(probabilities.containsKey(firstValX) && !(probabilities.containsKey(secondValX))){
             equationFirstVal(secondValX, values.get(1), values.get(0), x);
@@ -153,16 +155,44 @@ public class HiddenMarkov {
         Double dFirstValX = probabilities.get(firstValX); 
         Double dSecondValX = probabilities.get(secondValX); 
 
-
+        System.out.println(dGivenFirst + " " + dGivenSecond + " " + dFirstValX + " " + dSecondValX);
+        
         Double ans = dGivenFirst * dFirstValX + dGivenSecond * dSecondValX;
+
+        System.out.println(ans);
 
         probabilities.put(compStatement, ans);
     }
 
+    public void getValueGivenMeasure(String value){
+        String[] val = value.split(" given "); //stores all the words from the line in values
 
-//iterate over probability arraylist
+        String comp = val[0]; //S1
+        String[] c = comp.split("");
+        String state = c[0]; //S
+        int x = Integer.parseInt(c[1]); //1
+
+        String measure = val[1]; //E1
+        String[] m = measure.split("");
+        String stateMeasure = m[0]; //E
+        int y = Integer.parseInt(m[1]); //1
+
     
-    //x given y : followed by x (x ung after y)
+    }
+
+//S1E1 = (ES*S1)/E1
+    public void equationValueGivenMeasure(String compStatement, String state, String measure, int x){ //S1 given E1 , S , E, 1
+        String measureState = measure.concat(state); //ES
+        String[] val = compStatement.split(" given "); //stores all the words from the line in values
+        
+        Double mS = probabilities.get(measureState);
+        Double stateX = probabilities.get(val[0]);
+        Double measureX = probabilities.get(val[0]);
+
+        Double ans = (mS * stateX)/measureX;
+
+        probabilities.put(compStatement, ans);
+    }
     public void getTransitionProbability(char[] sq, char x, char y){
         Double yCount = getValueCount(sq, y);
         Double probability = 0.0;
