@@ -7,10 +7,6 @@ public class HiddenMarkov {
     public ArrayList<Double> firstVal, secondVal;
     public int cases;
     public String sequence;
-                    
-
-//di ko pa rin gets measurement (is the E & F)
-//values is S T
 
     public HiddenMarkov() {
         this.probabilities = new HashMap<String, Double>();
@@ -55,37 +51,34 @@ public class HiddenMarkov {
 
     public void getStates(){
         for(int index = 0; index < compCases.size(); index++){
-            // getValueSubX(compCases.get(index));
-            // System.out.println(compCases.get(index));            
+            getValueSubX(compCases.get(index));
         }
-        getValueSubX("S1 given E1");
-        getValueSubX("S2 given F2");
-        getValueSubX("T3 given E3");
+        for(int index = 0; index < compCases.size(); index++){
+            getValueGivenMeasure(compCases.get(index));
+        }
     }
 
-
-
     public void getValueSubX(String value){
-            String[] val = value.split(" given "); //stores all the words from the line in values
+        String[] val = value.split(" given "); //stores all the words from the line in values
 
-            String comp = val[0]; //S1
-            String[] c = comp.split("");
-            String state = c[0]; //S
-            int x = Integer.parseInt(c[1]); //1
+        String comp = val[0]; //S1
+        String[] c = comp.split("");
+        String state = c[0]; //S
+        int x = Integer.parseInt(c[1]); //1
 
-            String measure = val[1]; //E1
-            String[] m = measure.split("");
-            String stateMeasure = m[0]; //E
-            int y = Integer.parseInt(m[1]); //1
+        String measure = val[1]; //E1
+        String[] m = measure.split("");
+        String stateMeasure = m[0]; //E
+        int y = Integer.parseInt(m[1]); //1
 
 
-            if(state.equals(values.get(0))){ //S
-                equationFirstVal(comp, state, getOtherState(state), x);
-            }
-            else{ //T
-                equationFirstVal(comp, state, getOtherState(state), x);
-            }
-            equationMeasure(measure, stateMeasure, y);
+        if(state.equals(values.get(0))){ //S
+            equationFirstVal(comp, state, getOtherState(state), x);
+        }
+        else{ //T
+            equationFirstVal(comp, state, getOtherState(state), x);
+        }
+        equationMeasure(measure, stateMeasure, y);
     }
 
     public String getOtherState(String s){ //good
@@ -113,7 +106,6 @@ public class HiddenMarkov {
             Double dGSOP = probabilities.get(GSOP);
 
             Double ans = dGS2 * dGivenState + dGSOP * dOpState;
-            // System.out.println(givenState + ": " + dGivenState + " " + opposingState + ": " + dOpState + " " + GS2 + ": " + dGS2 + " " + GSOP + ": " + dGSOP;
 
             probabilities.put(compStatement, ans);
         }
@@ -137,8 +129,6 @@ public class HiddenMarkov {
         String firstValX = (values.get(0)).concat(Integer.toString(x)); //S1
         String secondValX = (values.get(1)).concat(Integer.toString(x)); //T1
 
-        System.out.println(givenFirst + " " + givenSecond + " " + firstValX + " " + secondValX);
-
         if(probabilities.containsKey(firstValX) && !(probabilities.containsKey(secondValX))){
             equationFirstVal(secondValX, values.get(1), values.get(0), x);
         }
@@ -155,11 +145,7 @@ public class HiddenMarkov {
         Double dFirstValX = probabilities.get(firstValX); 
         Double dSecondValX = probabilities.get(secondValX); 
 
-        System.out.println(dGivenFirst + " " + dGivenSecond + " " + dFirstValX + " " + dSecondValX);
-        
         Double ans = dGivenFirst * dFirstValX + dGivenSecond * dSecondValX;
-
-        System.out.println(ans);
 
         probabilities.put(compStatement, ans);
     }
@@ -175,24 +161,25 @@ public class HiddenMarkov {
         String measure = val[1]; //E1
         String[] m = measure.split("");
         String stateMeasure = m[0]; //E
-        int y = Integer.parseInt(m[1]); //1
 
-    
+        equationValueGivenMeasure(value, state, stateMeasure, x);
+
     }
 
-//S1E1 = (ES*S1)/E1
     public void equationValueGivenMeasure(String compStatement, String state, String measure, int x){ //S1 given E1 , S , E, 1
         String measureState = measure.concat(state); //ES
         String[] val = compStatement.split(" given "); //stores all the words from the line in values
         
         Double mS = probabilities.get(measureState);
         Double stateX = probabilities.get(val[0]);
-        Double measureX = probabilities.get(val[0]);
+        Double measureX = probabilities.get(val[1]);
+
 
         Double ans = (mS * stateX)/measureX;
 
         probabilities.put(compStatement, ans);
     }
+
     public void getTransitionProbability(char[] sq, char x, char y){
         Double yCount = getValueCount(sq, y);
         Double probability = 0.0;
@@ -205,7 +192,6 @@ public class HiddenMarkov {
             }
         }
         probability = count / yCount;  
-        System.out.println(Character.toString(x) + Character.toString(y) + ": " + count + "/ " + yCount +" = " + probability);
         String s = Character.toString(x);
         s = s.concat(Character.toString(y)); 
         probabilities.put(s, probability);
@@ -286,26 +272,11 @@ public class HiddenMarkov {
         String filename = "hmm.out";
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
-            for(int i = 0; i < values.size(); i++){
-                writer.write(values.get(i) + " ");
-            }
-            writer.write("\n");
-
-            for(int i = 0; i < measurement.size(); i++){
-                writer.write(measurement.get(i) + " ");
-            }
-            writer.write("\n");
 
             for (Map.Entry<String, Double> entry : probabilities.entrySet()) {
-                writer.write(entry.getKey()+" : "+entry.getValue() + "\n");
-            }
-
-            writer.write(sequence + "\n");
-            // System.out.println(cases);
-            // writer.write(cases);
-
-            for(int i = 0; i < compCases.size(); i++){
-                writer.write(compCases.get(i) + "\n");
+                if(compCases.contains(entry.getKey())){
+                    writer.write("P("+ entry.getKey()+") = "+entry.getValue() + "\n");
+                }
             }
 
             writer.close();

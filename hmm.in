@@ -1,9 +1,11 @@
-S T
-E F
+A B
+E D
 0.7 0.3
 0.4 0.6
-STSSTSTSSSTT
-3
-S1 given E1
-T3 given F3
-S2 given F2
+ABAABABAAABB
+5
+A1 given E1
+B1 given D1
+B3 given D3
+A2 given D2
+B5 given D5
