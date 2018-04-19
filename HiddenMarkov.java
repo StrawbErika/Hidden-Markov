@@ -1,7 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-public claGS2 HiddenMarkov {
+public class HiddenMarkov {
     public ArrayList<String> values, measurement, compCases;
     public HashMap<String, Double> probabilities;
     public ArrayList<Double> firstVal, secondVal;
@@ -75,11 +75,9 @@ public claGS2 HiddenMarkov {
             int x = Integer.parseInt(c[1]);
 
             if(state.equals(values.get(0))){ //S
-                System.out.println(comp + " " + state + " " + getOtherState(state) + " " + x);
                 equationFirstVal(comp, state, getOtherState(state), x);
             }
             else if(state.equals(values.get(1))){ //T
-                System.out.println(comp + " " + state + " " + getOtherState(state) + " " + x);
                 equationFirstVal(comp, state, getOtherState(state), x);
             }
             else{ //E
@@ -130,9 +128,37 @@ public claGS2 HiddenMarkov {
         }
     }
  
-    public void equationMeasure(){
-        
+//  p(E1) = pES*pS1 + pET*pT1
+//  p(F1) = pFS*pS1 + pFT*pT1
+    public void equationMeasure(String compStatement, String state, int x){ //E1 , E , 1
+        String givenFirst = state.concat(values.get(0)); //ES  
+        String givenSecond = state.concat(values.get(1));  //ET
+        String firstValX = (values.get(0)).concat(Integer.toString(x)); //S1
+        String secondValX = (values.get(1)).concat(Integer.toString(x)); //T1
+
+
+        if(probabilities.containsKey(firstValX) && !(probabilities.containsKey(secondValX))){
+            equationFirstVal(secondValX, values.get(1), values.get(0), x);
+        }
+        else if(!(probabilities.containsKey(firstValX)) && probabilities.containsKey(secondValX)){
+            equationFirstVal(firstValX, values.get(0), values.get(1), x);
+        } 
+        else{
+            equationFirstVal(firstValX, values.get(0), values.get(1), x);
+            equationFirstVal(secondValX, values.get(1), values.get(0), x);
+        }
+
+        Double dGivenFirst = probabilities.get(givenFirst); 
+        Double dGivenSecond = probabilities.get(givenSecond); 
+        Double dFirstValX = probabilities.get(firstValX); 
+        Double dSecondValX = probabilities.get(secondValX); 
+
+
+        Double ans = dGivenFirst * dFirstValX + dGivenSecond * dSecondValX;
+
+        probabilities.put(compStatement, ans);
     }
+
 
 //iterate over probability arraylist
     
@@ -222,7 +248,7 @@ public claGS2 HiddenMarkov {
             }
             in.close();
         } catch (Exception e) {//Catch exception if any
-            System.err.println("Error: " + e.getMeGS2age());
+            System.err.println("Error: " + e.getMessage());
         }
     }
 
